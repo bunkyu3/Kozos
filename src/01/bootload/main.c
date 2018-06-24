@@ -4,11 +4,11 @@
 
 int main(void)
 {
-  serial_init(SERIAL_DEFAULT_DEVICE);
-
-  puts("Hello World!\n");
-
-  while (1)
+  serial_init(SERIAL_DEFAULT_DEVICE);	//シリアルデバイスを初期化
+ 
+  puts("Hello World!\n");		//"Hello World!"を出力
+ 
+  while (1)				//無限ループで停止
     ;
 
   return 0;

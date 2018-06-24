@@ -4,13 +4,13 @@ ENTRY("_start")
 
 SECTIONS
 {
-	. = 0x0;
+	. = 0x0;	/*メモリの先頭番地から配置*/
 
-	.vectors : {
+	.vectors : {	/*割り込みベクタ*/
 		vector.o(.data)
 	}
 
-	.text : {
+	.text : {	/*テキスト領域*/
 		*(.text)
 	}
 
@@ -20,11 +20,11 @@ SECTIONS
 		*(.rodata.*)
 	}
 
-	.data : {
+	.data : {	/*データ領域*/
 		*(.data)
 	}
 
-	.bss : {
+	.bss : {	/*BSS領域*/
 		*(.bss)
 		*(COMMON)
 	}
