@@ -1,5 +1,6 @@
 #include "defines.h"
 #include "serial.h"
+#include "xmodem.h"
 #include "lib.h"
 
 static int init(void)
@@ -23,34 +24,75 @@ static int init(void)
 	return 0;
 }
 
-int global_data = 0x10;
-int global_bss;
-static int static_data = 0x20;
-static int static_bss;
-
-static void printval(void)
+/*
+「メモリの16進ダンプ出力」
+出力したいメモリの先頭番地、サイズ、を渡す
+*/
+static int dump(char *buf, long size)
 {
-	puts("glocal_data	= "); putxval(global_data, 0); puts("\n");
-	puts("glocal_bss	= "); putxval(global_bss,	 0); puts("\n");
-	puts("static_data	= "); putxval(static_data, 0); puts("\n");
-	puts("static_bss	= "); putxval(static_bss,	 0); puts("\n");
-}	
+	long i;
+
+	if (size < 0) {
+		puts("no data.\n");
+		return -1;
+	}
+	for (i = 0; i < size; i++) {
+		putxval(buf[i], 2);				//16進表示（2桁）
+		if ((i & 0xf) == 15) {		//16回表示したら
+			puts("\n");							//改行
+		} else {
+			if ((i & 0xf) == 7) puts(" ");	//7回表示したら
+			puts(" ");											//スペース表示
+		}
+	}
+	puts("\n");
+
+	return 0;
+}
+
+/*
+「ウェイトする（何もしない）関数」
+*/
+static void wait()
+{
+	volatile long i;
+	for (i = 0; i < 300000; i++)
+		;
+}
 
 int main(void)
 {
+	static char buf[16];
+	static long size = -1;
+	static unsigned char *loadbuf = NULL;
+	extern int buffer_start;
+
 	init();  
-  puts("Hello World!\n");		//"Hello World!"を出力
+ 	puts("kzload (kozos boot loader) started.\n");
 
-	printval();
-	puts("overwrite variable.\n");
-	global_data = 0x20;
-	global_bss 	= 0x30;
-	static_data = 0x40;
-	static_bss 	= 0x50;
-	printval();	
+  while (1) {
+		puts("kzload> ");	//プロンプト表示
+		gets(buf);				//シリアルからのコマンド受信（文字列）
 
-  while (1)				//無限ループで停止
-    ;
+		if (!strcmp(buf, "load")) {						//コマンド"load"を受信
+			loadbuf = (char *)(&buffer_start);	//リンカスクリプトで定義
+			size = xmodem_recv(loadbuf);				//loadbuf番地以降にロード
+			wait();															//ウェイト
+			if (size < 0) {
+				puts("\nXMODEM receive error!\n");
+			} else {
+				puts("\nXMODEM receive succeeded.\n");
+			}
+		} else if (!strcmp(buf, "dump")) {		//コマンド"dump"を受信
+			puts("size: ");
+			putxval(size, 0);										//サイズを16進表示
+			puts("\n");
+			dump(loadbuf, size);								//dump出力
+		} else {
+			puts("unknown.\n");
+		}
+	}
+    
 
   return 0;
 }

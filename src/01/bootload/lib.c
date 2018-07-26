@@ -116,6 +116,19 @@ int putc(unsigned char c)
 }
 
 /*
+「1文字受信」
+改行コードの場合'\r\nを出力'
+出力先はSCI1（デフォルトとして設定）
+*/
+unsigned char getc(void)
+{
+	unsigned char c = serial_recv_byte(SERIAL_DEFAULT_DEVICE);
+	c = (c == '\r') ? '\n' : c;	//改行コードの変換
+	putc(c);	//エコーバック
+	return c;
+}
+
+/*
 「文字列送信」
 送信したい文字列を渡す
 */
@@ -125,6 +138,24 @@ int puts(unsigned char *str)
     putc(*(str++));
   return 0;
 }
+
+/*
+「文字列受信」
+バッファの先頭番地を渡し、文字数が帰る
+*/
+int gets(unsigned char *buf)
+{
+	int i = 0;
+	unsigned char c;
+	do {
+		c = getc();			//1文字受信
+		if (c == '\n')	//改行コードだったら
+			c = '\0';
+		buf[i++] = c;		//バッファに格納
+	} while (c);
+	return i - 1;
+}
+
 
 /*
 「数値の16進表示」

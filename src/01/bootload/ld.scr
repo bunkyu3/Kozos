@@ -12,6 +12,7 @@ MEMORY	/*各メモリ領域を定義*/
 	rom(rx)			: o = 0x000100, l = 0x07ff00	
 	/*RAMの定義*/
 	ramall(rwx)	: o = 0xffbf20, l = 0x004000	/*RAMの全域を示す、16KB*/
+	buffer(rwx)	:	o = 0xffdf20,	l = 0x001d00	/*シリアル経由でダウンロードしたファイルのロード先、8KB*/
 	data(rwx)		: o = 0xfffc20, l = 0x000300	
 	stack(rw)		: o = 0xffff00, l = 0x000000	/*end of RAM*/
 }
@@ -38,6 +39,10 @@ SECTIONS	/*以下はセクション定義*/
 		*(.rodata.*)
 		_erodata = . ;
 	}	> rom
+
+	.buffer : {
+		_buffer_start = . ;
+	} > buffer
 
 	/*データ領域*/
 	.data : {
