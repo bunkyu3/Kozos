@@ -22,7 +22,7 @@ H8WRITE_SERDEV = /dev/ttyUSB0	#シリアル接続先
 
 #コンパイルするソースコード群
 OBJS  = vector.o startup.o main.o
-OBJS += lib.o serial.o xmodem.o
+OBJS += lib.o serial.o xmodem.o elf.o
 
 TARGET = kzload
 

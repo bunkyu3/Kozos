@@ -1,6 +1,7 @@
 #include "defines.h"
 #include "serial.h"
 #include "xmodem.h"
+#include "elf.h"
 #include "lib.h"
 
 static int init(void)
@@ -70,24 +71,26 @@ int main(void)
 	init();  
  	puts("kzload (kozos boot loader) started.\n");
 
-  while (1) {
-		puts("kzload> ");	//プロンプト表示
+	while (1) {
+		puts("kzload> ");		//プロンプト表示
 		gets(buf);				//シリアルからのコマンド受信（文字列）
 
 		if (!strcmp(buf, "load")) {						//コマンド"load"を受信
-			loadbuf = (char *)(&buffer_start);	//リンカスクリプトで定義
+			loadbuf = (char *)(&buffer_start);			//リンカスクリプトで定義
 			size = xmodem_recv(loadbuf);				//loadbuf番地以降にロード
-			wait();															//ウェイト
+			wait();										//ウェイト
 			if (size < 0) {
 				puts("\nXMODEM receive error!\n");
 			} else {
 				puts("\nXMODEM receive succeeded.\n");
 			}
-		} else if (!strcmp(buf, "dump")) {		//コマンド"dump"を受信
+		} else if (!strcmp(buf, "dump")) {				//コマンド"dump"を受信
 			puts("size: ");
-			putxval(size, 0);										//サイズを16進表示
+			putxval(size, 0);							//サイズを16進表示
 			puts("\n");
-			dump(loadbuf, size);								//dump出力
+			dump(loadbuf, size);						//dump出力
+		} else if (!strcmp(buf, "run")) {
+			elf_load(loadbuf);							//ELF形式ファイルの解析
 		} else {
 			puts("unknown.\n");
 		}
