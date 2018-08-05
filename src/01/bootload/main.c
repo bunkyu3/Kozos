@@ -38,12 +38,12 @@ static int dump(char *buf, long size)
 		return -1;
 	}
 	for (i = 0; i < size; i++) {
-		putxval(buf[i], 2);				//16進表示（2桁）
+		putxval(buf[i], 2);			//16進表示（2桁）
 		if ((i & 0xf) == 15) {		//16回表示したら
-			puts("\n");							//改行
+			puts("\n");				//改行
 		} else {
 			if ((i & 0xf) == 7) puts(" ");	//7回表示したら
-			puts(" ");											//スペース表示
+			puts(" ");						//スペース表示
 		}
 	}
 	puts("\n");
@@ -66,6 +66,8 @@ int main(void)
 	static char buf[16];
 	static long size = -1;
 	static unsigned char *loadbuf = NULL;
+	char *entry_point;
+	void (*f)(void);
 	extern int buffer_start;
 
 	init();  
@@ -90,7 +92,17 @@ int main(void)
 			puts("\n");
 			dump(loadbuf, size);						//dump出力
 		} else if (!strcmp(buf, "run")) {
-			elf_load(loadbuf);							//ELF形式ファイルの解析
+			entry_point = elf_load(loadbuf);
+			if (!entry_point) {
+				puts("run error!\n");
+			} else {
+				puts("starting from entry point: ");
+				putxval((unsigned long)entry_point, 0);
+				puts("\n");
+				f = (void (*)(void))entry_point;			//ロードしたプログラムに処理を渡す
+				f();
+				//ここには返ってこない
+			}
 		} else {
 			puts("unknown.\n");
 		}
